@@ -1,14 +1,99 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>React Tutorials</title>
   <!-- change this up! http://www.bootstrapcdn.com/bootswatch/ -->
-  <link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.6/cosmo/bootstrap.min.css" type="text/css" rel="stylesheet"/>
+  <link href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.6/cosmo/bootstrap.min.css" type="text/css"
+    rel="stylesheet" />
 </head>
 
 <body>
-<div id="app"></div>
-<script src="client.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+        'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+        sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    code {
+      font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+        monospace;
+    }
+
+
+    .accent {
+      color: #235eb8;
+    }
+
+    .accent-bg {
+      background-color: #235eb8;
+      color: #dbcaaf;
+    }
+
+
+    .App {
+      height: 100vh;
+      width: 100vw;
+      background-color: #dbcaaf;
+      padding: 0 24px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      margin: 0;
+      padding: 32px 0;
+    }
+
+    section.record {
+      padding: 64px 0;
+      text-align: center;
+      border: 2px solid #235eb8;
+      border-radius: 8px;
+    }
+
+    section.record button {
+      font-size: 18px;
+      font-weight: bold;
+      padding: 12px 32px;
+      border: none;
+      border-radius: 8px;
+    }
+
+    section.record p {
+      margin-bottom: 0;
+      margin-top: 12px;
+    }
+
+    section.play {
+      padding: 32px 0;
+    }
+
+    .files {
+      display: flex;
+      flex-direction: column-reverse;
+    }
+
+    .files .file {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+    }
+
+    .files .file button {
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+    }
+  </style>
+  <div id="app"></div>
+  <script src="client.min.js"></script>
 </body>
+
 </html>
