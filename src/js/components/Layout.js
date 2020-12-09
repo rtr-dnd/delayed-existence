@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid'
 export default class Layout extends React.Component {
   constructor () {
     super()
-    this.obniz = new Obniz('obniz_id_HERE')
+    this.obniz = new Obniz('6852-3682')
     this.obniz.on('connect', () => {
       const connectedState = 'connected'
       this.ports = {
@@ -55,6 +55,7 @@ export default class Layout extends React.Component {
       obniz: this.obniz,
       connectedState: 'false',
       status: 0, // 0: standby, 1: recording, 2: playing
+      nowPlayingId: '',
       recordInterval: undefined,
       playInterval: undefined,
       playIndex: 0,
@@ -126,7 +127,9 @@ export default class Layout extends React.Component {
   play (id) {
     const status = 2
     this.setState({ status })
-    const thisFile = this.state.files.find((element) => { return element.id })
+    const nowPlayingId = id
+    this.setState({ nowPlayingId })
+    const thisFile = this.state.files.find((element) => { return element.id === id })
     const playIntervalTmp = setInterval(async () => {
       if (this.state.playIndex >= thisFile.base.length - 1) {
         const status = 0
@@ -197,7 +200,8 @@ export default class Layout extends React.Component {
                         month: 'short',
                         day: 'numeric',
                         hour: 'numeric',
-                        minute: 'numeric'
+                        minute: 'numeric',
+                        second: 'numeric'
                       }).format(item.time)
                       // new Intl.DateTimeFormat('en', { year: 'numeric' }).format(item.time) +
                       // ' ' +
@@ -209,11 +213,11 @@ export default class Layout extends React.Component {
                       // ' ' +
                       // new Intl.DateTimeFormat('en', { day: '2-digit' }).format(item.time)
                     }</span>
+                    {/* <span>{item.id}</span> */}
                     {
-                      this.state.status === 2
+                      this.state.status === 2 && this.state.nowPlayingId === item.id
                         ? <button onClick={() => { this.stopPlay(item.id) }}>Stop</button>
                         : <button onClick={() => { this.play(item.id) }}>Play</button>
-
                     }
                   </div>
                 })
