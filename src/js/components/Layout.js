@@ -6,18 +6,46 @@ export default class Layout extends React.Component {
   constructor () {
     super()
     this.obniz = new Obniz('obniz_id_HERE')
-    this.servo = undefined
     this.obniz.on('connect', () => {
       const connectedState = 'connected'
+      this.ports = {
+        laser: {
+          out: this.obniz.io2,
+          in: this.obniz.io3
+        },
+        base: {
+          out: undefined,
+          in: this.obniz.ad7,
+          angleFunc: (value) => {
+            return -value * 50 + 230
+          }
+        },
+        shoulder: {
+          out: undefined,
+          in: this.obniz.ad5,
+          angleFunc: (value) => {
+            return -value * 50 + 320
+          }
+        },
+        arm: {
+          out: undefined,
+          in: this.obniz.ad9,
+          angleFunc: (value) => {
+            return value * 50 + 10
+          }
+        }
+      }
       this.obniz.io0.pull('5v')
       this.obniz.io0.output(false)
       this.obniz.io1.pull('5v')
       this.obniz.io1.output(true)
-      this.obniz.io10.pull('3v')
-      this.obniz.io10.output(false)
+      this.ports.laser.out.pull('3v')
+      this.ports.laser.out.output(false)
       this.setState({ connectedState })
       this.setState({ connectedState })
-      this.servo = this.obniz.wired('ServoMotor', { signal: 11 })
+      this.ports.base.out = this.obniz.wired('ServoMotor', { signal: 6 })
+      this.ports.shoulder.out = this.obniz.wired('ServoMotor', { signal: 4 })
+      this.ports.arm.out = this.obniz.wired('ServoMotor', { signal: 8 })
     })
     this.obniz.on('close', () => {
       const connectedState = 'false'
@@ -30,7 +58,8 @@ export default class Layout extends React.Component {
       recordInterval: undefined,
       playInterval: undefined,
       playIndex: 0,
-      servo: this.servo,
+      // servo: this.servo,
+      ports: this.ports,
       files: [],
       buffer: {}
     }
@@ -43,35 +72,42 @@ export default class Layout extends React.Component {
     const buffer = {
       id: uuidv4(),
       time: Date.now(),
-      motor: [],
+      base: [],
+      shoulder: [],
+      arm: [],
       laser: []
     }
     this.setState({ buffer })
     const recordIntervalTmp = setInterval(async () => {
-      const value = await this.obniz.ad5.getWait()
-      const a = -350
-      const b = 180
-      console.log(Math.log(value + 1) * a + b)
-      // a(p-1) = ln(y)
-      // p = ln(y)/a + 1
-      const on = await this.obniz.io6.inputWait()
+      const baseValue = await this.ports.base.in.getWait()
+      const shoulderValue = await this.ports.shoulder.in.getWait()
+      const armValue = await this.ports.arm.in.getWait()
+      const on = await this.ports.laser.in.inputWait()
+
       this.setState(prevState => {
         const buffer = Object.assign({}, prevState.buffer)
-        buffer.motor.push(value)
+        buffer.base.push(baseValue)
+        buffer.shoulder.push(shoulderValue)
+        buffer.arm.push(armValue)
         buffer.laser.push(on)
         return { buffer }
       })
-      if (this.servo) {
-        this.servo.angle(Math.log(value + 1) * a + b)
-        // 180 ~ 0
-        // this.servo.angle(0)
+
+      if (this.ports.base.out) {
+        this.ports.base.out.angle(this.ports.base.angleFunc(baseValue))
+      }
+      if (this.ports.shoulder.out) {
+        this.ports.shoulder.out.angle(this.ports.shoulder.angleFunc(shoulderValue))
+      }
+      if (this.ports.arm.out) {
+        this.ports.arm.out.angle(this.ports.arm.angleFunc(armValue))
       }
       if (on) {
-        this.obniz.io10.output(true)
+        this.ports.laser.out.output(true)
       } else {
-        this.obniz.io10.output(false)
+        this.ports.laser.out.output(false)
       }
-    }, 150)
+    }, 100)
 
     this.setState({ recordInterval: recordIntervalTmp })
   }
@@ -92,26 +128,35 @@ export default class Layout extends React.Component {
     this.setState({ status })
     const thisFile = this.state.files.find((element) => { return element.id })
     const playIntervalTmp = setInterval(async () => {
-      if (this.state.playIndex >= thisFile.length - 1) {
+      if (this.state.playIndex >= thisFile.base.length - 1) {
         const status = 0
         this.setState({ status })
         this.setState({ playIndex: 0 })
         clearInterval(this.state.playInterval)
         return
       }
-      const value = thisFile.motor[this.state.playIndex]
+
+      const baseValue = thisFile.base[this.state.playIndex]
+      const shoulderValue = thisFile.shoulder[this.state.playIndex]
+      const armValue = thisFile.arm[this.state.playIndex]
       const on = thisFile.laser[this.state.playIndex]
-      console.log(value)
-      if (this.servo) {
-        this.servo.angle(Math.log(value + 1) * a + b)
+
+      if (this.ports.base.out) {
+        this.ports.base.out.angle(this.ports.base.angleFunc(baseValue))
+      }
+      if (this.ports.shoulder.out) {
+        this.ports.shoulder.out.angle(this.ports.shoulder.angleFunc(shoulderValue))
+      }
+      if (this.ports.arm.out) {
+        this.ports.arm.out.angle(this.ports.arm.angleFunc(armValue))
       }
       if (on) {
-        this.obniz.io10.output(true)
+        this.ports.laser.out.output(true)
       } else {
-        this.obniz.io10.output(false)
+        this.ports.laser.out.output(false)
       }
       this.setState({ playIndex: this.state.playIndex + 1 })
-    }, 50)
+    }, 100)
     this.setState({ playInterval: playIntervalTmp })
   }
 
